@@ -9,6 +9,7 @@ import { formatCurrency, formatPercent } from './utils/formatters';
 const currencies = ['RM', 'SGD', 'USD', 'THB', 'AUD', 'PHP', 'RMB', 'HKD'];
 
 const App: React.FC = () => {
+
 const allowedDomains = [
   "www.thecapitalbridge.com",
   "thecapitalbridge.com",
@@ -20,9 +21,23 @@ const hostname = typeof window !== "undefined" ? window.location.hostname : "";
 const isAllowed =
   hostname === "" ||
   hostname === "localhost" ||
-  hostname === "www.thecapitalbridge.com" ||
-  hostname === "thecapitalbridge.com" ||
-  hostname.endsWith(".vercel.app");
+  hostname.endsWith(".vercel.app") ||
+  hostname.endsWith(".thecapitalbridge.com");
+
+
+if (!isAllowed) {
+  return (
+    <div style={{
+      display: "flex",
+      height: "100vh",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "sans-serif"
+    }}>
+      Unauthorised domain
+    </div>
+  );
+}
 
 
 if (!isAllowed) {
