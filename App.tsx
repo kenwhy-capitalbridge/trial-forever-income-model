@@ -20,8 +20,9 @@ const hostname = typeof window !== "undefined" ? window.location.hostname : "";
 const isAllowed =
   hostname === "" ||
   hostname === "localhost" ||
-  hostname.endsWith(".vercel.app") ||
-  allowedDomains.includes(hostname);
+  hostname === "www.thecapitalbridge.com" ||
+  hostname === "thecapitalbridge.com" ||
+  hostname.endsWith(".vercel.app");
 
 
 if (!isAllowed) {
@@ -33,7 +34,7 @@ if (!isAllowed) {
       justifyContent: "center",
       fontFamily: "sans-serif"
     }}>
-      Unauthorized domain
+      Unauthorised domain
     </div>
   );
 }
