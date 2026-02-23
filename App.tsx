@@ -14,7 +14,6 @@ const allowedDomains = [
   "thecapitalbridge.com",
   "localhost",
   "forever-income-calculator.vercel.app",
-  "forever-income-calculator-hkmycqhva.vercel.app",
 ];
 
 const isAllowed =
