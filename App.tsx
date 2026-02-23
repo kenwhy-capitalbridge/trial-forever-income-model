@@ -12,7 +12,7 @@ const App: React.FC = () => {
 const allowedDomains = [
   "www.thecapitalbridge.com",
   "thecapitalbridge.com",
-  "your-project-name.vercel.app",
+  "https://forever-income-calculator.vercel.app",
   "localhost"
 ];
 
