@@ -1,0 +1,42 @@
+
+CAPITAL BRIDGE - FOREVER INCOME CALCULATOR KNOWLEDGE BASE
+
+1. MISSION STATEMENT
+The Forever Income Calculator is a high-level wealth analytics tool designed to determine the "Sustainability Threshold." It calculates the exact amount of capital required to fund a specific lifestyle indefinitely without ever depleting the principal sum, accounting for the erosive effects of inflation.
+
+2. CORE METHODOLOGY (THE MATH)
+The calculator utilizes the "Real Return Rate" model.
+- Formula: Capital Required = Annual Expenses / (Expected ROI % - Inflation Rate %)
+- Logic: To live off capital forever, you must only spend the portion of your returns that exceeds inflation. If you spend the full ROI, your purchasing power will decrease every year.
+- Sustainability Rule: If (Expected ROI - Inflation) is zero or negative, the strategy is marked as "Negative Yield" (unsustainable), as the capital will eventually run out regardless of the starting amount.
+
+3. KEY INPUT DATA POINTS
+- Lifestyle Spend: The target annual or monthly cash flow required for all living expenses.
+- Capital Allocation:
+    a) Liquid Assets: Cash, savings, and immediate salary.
+    b) Investments: Stocks, bonds, mutual funds, or private equity.
+    c) Property/Company/Others: Tangible assets or business valuations.
+- Market Expectations:
+    - Expected ROI: The anticipated annual growth of the portfolio.
+    - Inflation Rate: The expected long-term increase in the cost of living (typically 3-4%).
+
+4. INTERPRETING RESULTS
+- Target Fund: The total capital required to reach "Perpetual Income" status.
+- Current Wealth: The sum of all current assets provided by the user.
+- Funding Gap: The remaining capital needed to achieve the goal. If zero, the user is "Fully Funded."
+- Independence Bridge (Progress %): A visual representation of how close the user is to their target.
+- Annual Multiplier: Calculated as (Capital Needed / Annual Expense). This shows how many "years" of expenses are required in the fund to sustain the lifestyle forever (e.g., a 25x multiplier is common for a 4% real return).
+
+5. USER JOURNEY & INSTRUCTIONS
+1. Select Currency: Choose from RM, SGD, USD, and other regional currencies.
+2. Set Expense Type: Toggle between Monthly or Annual budgeting.
+3. Input Lifestyle Spend: Use the slider to define the cost of your desired lifestyle.
+4. Audit Assets: Enter your current holdings across Cash, Investments, and Property.
+5. Set Expectations: Adjust ROI and Inflation based on your risk profile and economic outlook.
+6. Analyze the Gap: Review the "Wealth Gap Analysis" dashboard.
+7. Export: Download the "Strategic Roadmap" PDF for professional consultation with Capital Bridge advisors.
+
+6. CHATBOT REDIRECT PROMPTS (Use these to guide users)
+- "To see if your current savings can support your dream lifestyle forever, use our Forever Income Calculator."
+- "Are you curious about your 'Wealth Gap'? Adjust your ROI and inflation expectations here to find your target number."
+- "Calculate your Lifestyle Multiplier to understand how much capital you really need for true financial independence."
