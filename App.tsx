@@ -13,12 +13,16 @@ const allowedDomains = [
   "www.thecapitalbridge.com",
   "thecapitalbridge.com",
   "localhost",
-  "forever-income-calculator.vercel.app",
 ];
 
+const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+
 const isAllowed =
-  typeof window === "undefined" ||
-  allowedDomains.includes(window.location.hostname);
+  hostname === "" ||
+  hostname === "localhost" ||
+  hostname.endsWith(".vercel.app") ||
+  allowedDomains.includes(hostname);
+
 
 if (!isAllowed) {
   return (
