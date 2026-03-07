@@ -130,7 +130,7 @@ if (!isAllowed) {
     const progressPercent = isSustainable ? (capitalNeeded === 0 ? 100 : Math.min(100, (totalAssets / capitalNeeded) * 100)) : 0;
 
     // Calculate Time Horizon / Runway (Standard financial engineering formula for capital depletion)
-    let runway = "0 Years";
+    let runway = "0 years";
     if (netAnnualExpense <= 0) {
       runway = "Perpetual";
     } else {
@@ -144,14 +144,14 @@ if (!isAllowed) {
         } else {
           // n = ln( W / (W - C*r) ) / ln( 1 + r )
           const years = Math.log(W / (W - C * r)) / Math.log(1 + r);
-          runway = years.toFixed(1) + " Years";
+          runway = years.toFixed(1) + " years";
         }
       } else if (r === 0) {
-        runway = (C / W).toFixed(1) + " Years";
+        runway = (C / W).toFixed(1) + " years";
       } else {
         // Handle negative real return rate
         const years = Math.log(W / (W - C * r)) / Math.log(1 + r);
-        runway = !isNaN(years) ? years.toFixed(1) + " Years" : "0 Years";
+        runway = !isNaN(years) ? years.toFixed(1) + " years" : "0 years";
       }
     }
 
@@ -203,6 +203,14 @@ if (!isAllowed) {
     ? (capitalDiff * (results.realReturnRate / 100)) / 12 
     : (capitalDiff * (results.realReturnRate / 100));
 
+  const addReportFooter = (doc: any) => {
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Capital Bridge Strategic Wealth Diagnostic', 105, 290, { align: 'center' });
+    doc.text('Confidential | Non-PII Report | For Personal Financial Planning Reference Only', 105, 295, { align: 'center' });
+  };
+
   const handleDownloadPDF = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
@@ -212,84 +220,343 @@ if (!isAllowed) {
       if (!jspdfModule || !jspdfModule.jsPDF) {
         throw new Error("jsPDF library not initialized");
       }
-      
+
       const doc = new jspdfModule.jsPDF('p', 'mm', 'a4');
-      doc.setFillColor(13, 58, 29);
-      doc.rect(0, 0, 210, 45, 'F');
-      doc.setTextColor(255, 204, 106);
-      doc.setFontSize(22);
+      const darkGreen = [13, 58, 29] as [number, number, number];
+      const lightGreen = [134, 239, 172] as [number, number, number]; // section accents
+      const bodyGray = [60, 60, 60];
+
+      // Load logo: try SVG first (if renderer supports it), fall back to transparent PNG
+      let logoBase64: string | null = null;
+      let logoFormat: 'PNG' | 'SVG' = 'PNG';
+      try {
+        const pngRes = await fetch('/capital-bridge-logo.png');
+        if (pngRes.ok) {
+          const blob = await pngRes.blob();
+          logoBase64 = await new Promise<string>((res, rej) => {
+            const r = new FileReader();
+            r.onload = () => res(r.result as string);
+            r.onerror = rej;
+            r.readAsDataURL(blob);
+          });
+          logoFormat = 'PNG';
+        }
+      } catch (_) {}
+
+      const pageWidth = 210;
+      const margin = 20;
+      const sectionGap = 6;
+      let y = 18;
+
+      const baseAnnualLifestyle = expenseType === ExpenseType.ANNUAL ? expense : expense * 12;
+
+      const drawSectionDivider = () => {
+        doc.setDrawColor(...lightGreen);
+        doc.setLineWidth(0.15);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += sectionGap;
+      };
+
+      // ========== PAGE 1 — Executive Financial Overview ==========
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 297, 'F');
+
+      // --- 1. Logo (top left, inline image, ~35mm ≈ 120–140px equivalent) ---
+      const logoW = 35;
+      const logoH = 14;
+      if (logoBase64) {
+        try {
+          doc.addImage(logoBase64, 'PNG', margin, y, logoW, logoH);
+          y += logoH + 4;
+        } catch (_) {
+          y += 2;
+        }
+      } else {
+        y += 2;
+      }
+
+      // --- 2. Report Title Header (clear hierarchy: CAPITAL BRIDGE > Forever Income Model > subtitle) ---
+      const headerLeft = margin;
+      doc.setTextColor(...darkGreen);
       doc.setFont('helvetica', 'bold');
-      doc.text('STRATEGIC WEALTH ROADMAP', 105, 25, { align: 'center' });
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
+      doc.setFontSize(18);
+      doc.text('CAPITAL BRIDGE', headerLeft, y + 5);
+      y += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('Forever Income Model', headerLeft, y + 4);
+      y += 7;
       doc.setFont('helvetica', 'normal');
-      doc.text('CAPITAL BRIDGE PRIVATE WEALTH ANALYTICS', 105, 33, { align: 'center' });
-
-      doc.setTextColor(13, 58, 29);
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('1. Cash Flow & Offset Profile', 20, 60);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Base Lifestyle Expense: ${formatCurrency(expenseType === ExpenseType.ANNUAL ? expense : expense * 12, currency)}/year`, 20, 70);
-      doc.text(`Property Debt Service: ${formatCurrency(results.propertyMonthlyRepayment * 12, currency)}/year`, 20, 77);
-      doc.text(`Family Contribution Offset: -${formatCurrency(results.familyContribution * 12, currency)}/year`, 20, 84);
-      doc.text(`NET STRATEGIC WITHDRAWAL: ${formatCurrency(results.annualExpense, currency)}/year`, 20, 91);
-      doc.text(`Yield Expected: ${results.expectedReturn}% | Inflation: ${results.inflationRate}%`, 20, 98);
-
-      doc.setTextColor(13, 58, 29);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('2. Capital Reserves', 20, 112);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80, 80, 80);
-      doc.text(`- LIQUID CASH: ${formatCurrency(cash, currency)}`, 30, 122);
-      doc.text(`- MARKET INVESTMENTS: ${formatCurrency(investments, currency)}`, 30, 129);
-      doc.text(`- Real Estate to be unlocked: ${formatCurrency(realEstate, currency)}`, 30, 136);
-      doc.text(`  (House/land/shop/business)`, 30, 142);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(13, 58, 29);
-      doc.text(`Aggregate Capital: ${formatCurrency(results.currentAssets, currency)}`, 20, 153);
-
-      doc.setDrawColor(255, 204, 106);
-      doc.setLineWidth(0.8);
-      doc.setFillColor(248, 248, 248);
-      doc.roundedRect(20, 166, 170, 85, 4, 4, 'FD');
-      
-      doc.setFontSize(11);
-      doc.setTextColor(13, 58, 29);
-      doc.setFont('helvetica', 'bold');
-      doc.text('FOREVER CAPITAL TARGET (NET):', 105, 181, { align: 'center' });
-      
-      doc.setFontSize(24);
-      doc.setTextColor(218, 165, 32);
-      doc.text(results.isSustainable ? formatCurrency(results.capitalNeeded, currency) : 'Infinity (Negative Yield)', 105, 198, { align: 'center' });
-
-      doc.setFontSize(11);
-      doc.setTextColor(13, 58, 29);
-      doc.text(isSurplusState ? `WEALTH SURPLUS (Portfolio):` : `CAPITAL DEPLETION (Portfolio):`, 105, 214, { align: 'center' });
-      
-      doc.setFontSize(16);
-      const gapColor = isSurplusState ? [13, 120, 29] : [200, 50, 50];
-      doc.setTextColor(...gapColor);
-      doc.text(results.isSustainable ? formatCurrency(capitalDiff, currency) : 'UNSUSTAINABLE ROI', 105, 228, { align: 'center' });
-      
       doc.setFontSize(9);
-      doc.text(`${displayImpactLabel} Income Impact: ${formatCurrency(displayIncomeImpact, currency)}`, 105, 234, { align: 'center' });
-      doc.setFont('helvetica', 'bold');
-      doc.text(`CAPITAL TIME HORIZON: ${results.runway.toUpperCase()}`, 105, 242, { align: 'center' });
-
+      doc.setTextColor(...bodyGray);
+      doc.text('Capital Sustainability Diagnostic', headerLeft, y + 3);
       doc.setFontSize(8);
-      doc.setTextColor(180, 180, 180);
-      doc.setFont('helvetica', 'normal');
-      doc.text('NON-PII SECURE REPORT | CAPITAL BRIDGE PRIVATE WEALTH ADVISORY', 105, 280, { align: 'center' });
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 285, { align: 'center' });
+      doc.setTextColor(...bodyGray);
+      doc.text(`Report Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - margin, y - 4, { align: 'right' });
+      y += 10;
+      drawSectionDivider();
 
-      doc.save(`Wealth-Roadmap-${new Date().getTime()}.pdf`);
+      // --- 3. Client Financial Snapshot ---
+      doc.setDrawColor(...lightGreen);
+      doc.setLineWidth(0.3);
+      doc.setFillColor(245, 252, 248);
+      doc.rect(margin, y, pageWidth - 2 * margin, 36, 'FD');
+      doc.setTextColor(...darkGreen);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Client Financial Snapshot', margin + 4, y + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Annual Lifestyle Spending: ${formatCurrency(baseAnnualLifestyle, currency)}`, margin + 4, y + 16);
+      doc.text(`Loan Cost / Interest Rate: ${propertyLoanCost}%`, margin + 4, y + 22);
+      doc.text(`Investment Return Assumption: ${expectedReturn}%`, margin + 105, y + 16);
+      doc.text(`Inflation Assumption: ${inflationRate}%`, margin + 105, y + 22);
+      doc.text(`Total Capital Available: ${formatCurrency(results.currentAssets, currency)}`, margin + 105, y + 28);
+      y += 40;
+      drawSectionDivider();
+
+      // --- 4. Scenario Context ---
+      doc.setFontSize(8);
+      doc.setTextColor(...bodyGray);
+      doc.text('Scenario Context', margin, y);
+      doc.text(`Base Scenario Projection — Return Assumption: ${expectedReturn}% | Inflation: ${inflationRate}%`, margin, y + 5);
+      y += 12;
+      drawSectionDivider();
+
+      // --- 5. Executive Summary ---
+      doc.setDrawColor(...lightGreen);
+      doc.setLineWidth(0.2);
+      doc.setFillColor(248, 252, 250);
+      doc.rect(margin, y, pageWidth - 2 * margin, 48, 'FD');
+      doc.setTextColor(...darkGreen);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Executive Summary', margin + 4, y + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...bodyGray);
+      const summaryX1 = margin + 4;
+      const summaryX2 = margin + 105;
+      doc.text('Net Strategic Withdrawal (Annual):', summaryX1, y + 18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...darkGreen);
+      doc.text(formatCurrency(results.annualExpense, currency), summaryX1, y + 24);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...bodyGray);
+      doc.text('Capital Sustainability Horizon:', summaryX1, y + 34);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...darkGreen);
+      doc.text(results.runway, summaryX1, y + 40);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...bodyGray);
+      doc.text('Total Capital Available:', summaryX2, y + 18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...darkGreen);
+      doc.text(formatCurrency(results.currentAssets, currency), summaryX2, y + 24);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...bodyGray);
+      doc.text('Forever Capital Target:', summaryX2, y + 34);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...darkGreen);
+      doc.text(results.isSustainable ? formatCurrency(results.capitalNeeded, currency) : '—', summaryX2, y + 40);
+      y += 54;
+      drawSectionDivider();
+
+      // --- 6. Model Assumptions ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...darkGreen);
+      doc.text('Model Assumptions', margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Strategic Return Assumption: ${expectedReturn}%`, margin, y + 7);
+      doc.text(`Long-Term Inflation Assumption: ${inflationRate}%`, margin, y + 13);
+      doc.text('Withdrawal Model: Inflation Adjusted', margin, y + 19);
+      y += 26;
+      drawSectionDivider();
+
+      // --- 7. Capital Efficiency Metrics (stacked rows to prevent label overlap) ---
+      const metricsBoxW = pageWidth - 2 * margin;
+      doc.setDrawColor(...lightGreen);
+      doc.setLineWidth(0.2);
+      doc.setFillColor(248, 252, 250);
+      doc.rect(margin, y, metricsBoxW, 34, 'FD');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...darkGreen);
+      doc.text('Capital Bridge Progress (Current Capital vs Forever Capital Target):', margin + 4, y + 8, { maxWidth: metricsBoxW - 28 });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(`${results.progressPercent.toFixed(1)}%`, margin + metricsBoxW - 8, y + 8, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Capital Efficiency Ratio (Current Capital ÷ Forever Capital Target):', margin + 4, y + 22, { maxWidth: metricsBoxW - 28 });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(`${results.progressPercent.toFixed(1)}%`, margin + metricsBoxW - 8, y + 22, { align: 'right' });
+      y += 40;
+
+      addReportFooter(doc);
+      doc.addPage();
+
+      // ========== PAGE 2 — Capital Sustainability Analysis ==========
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 297, 'F');
+      y = 20;
+
+      // --- Annual Income Requirement ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Annual Income Requirement', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y + 2, margin + 60, y + 2);
+      y += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Base Lifestyle Expense: ${formatCurrency(baseAnnualLifestyle, currency)}/year`, margin, y);
+      y += 7;
+      doc.text(`Property Debt Service: ${formatCurrency(results.propertyMonthlyRepayment * 12, currency)}/year`, margin, y);
+      y += 7;
+      doc.text(`Family Income Offset: -${formatCurrency(results.familyContribution * 12, currency)}/year`, margin, y);
+      y += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...darkGreen);
+      doc.text(`Net Strategic Withdrawal: ${formatCurrency(results.annualExpense, currency)}/year`, margin, y);
+      doc.setFont('helvetica', 'normal');
+      y += 20;
+
+      // --- Current Capital Position ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Current Capital Position', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 65, y + 2);
+      y += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Cash Reserves: ${formatCurrency(cash, currency)}`, margin, y);
+      y += 7;
+      doc.text(`Investment Portfolio: ${formatCurrency(investments, currency)}`, margin, y);
+      y += 7;
+      doc.text(`Real Estate Unlockable Value: ${formatCurrency(realEstate, currency)}`, margin, y);
+      y += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...darkGreen);
+      doc.text(`Total Capital Available: ${formatCurrency(results.currentAssets, currency)}`, margin, y);
+      doc.setFont('helvetica', 'normal');
+      y += 22;
+
+      // --- Capital Gap to Sustainability ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Capital Gap to Sustainability', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 75, y + 2);
+      y += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Forever Capital Target: ${results.isSustainable ? formatCurrency(results.capitalNeeded, currency) : '—'}`, margin, y);
+      y += 7;
+      doc.text(`Total Capital Available: ${formatCurrency(results.currentAssets, currency)}`, margin, y);
+      y += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...darkGreen);
+      doc.text(`Capital Gap: ${results.isSustainable ? formatCurrency(results.gap, currency) : '—'}`, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      y += 22;
+
+      // --- Capital Sustainability Horizon ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Capital Sustainability Horizon', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 85, y + 2);
+      y += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      doc.text(`Estimated years current capital can sustain withdrawals: ${results.runway}`, margin, y);
+
+      addReportFooter(doc);
+      doc.addPage();
+
+      // ========== PAGE 3 — Strategic Interpretation & Advisory Context ==========
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 297, 'F');
+      y = 20;
+
+      // --- Financial Interpretation ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Financial Interpretation', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 55, y + 2);
+      y += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      const runwayYears = results.runway === 'Perpetual' ? 'indefinitely' : `approximately ${results.runway} before depletion`;
+      const capitalBase = results.isSustainable ? formatCurrency(results.capitalNeeded, currency) : '—';
+      doc.text(`Based on the current capital structure and withdrawal level, the portfolio is projected to sustain income for ${runwayYears}.`, margin, y, { maxWidth: pageWidth - 2 * margin });
+      y += 10;
+      doc.text(`Achieving long-term financial sustainability would require an estimated capital base of ${capitalBase}.`, margin, y, { maxWidth: pageWidth - 2 * margin });
+      y += 22;
+
+      // --- Discussion Topics with Your Financial Advisor ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Discussion Topics with Your Financial Advisor', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 95, y + 2);
+      y += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...bodyGray);
+      const topics = ['Capital growth strategy', 'Income sustainability planning', 'Property equity optimization', 'Withdrawal efficiency'];
+      topics.forEach((t) => { doc.text(`• ${t}`, margin, y); y += 7; });
+      y += 14;
+
+      // --- Methodology Note ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGreen);
+      doc.text('Methodology Note', margin, y);
+      doc.setDrawColor(...lightGreen);
+      doc.line(margin, y + 2, margin + 45, y + 2);
+      y += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...bodyGray);
+      doc.text('The Capital Bridge model evaluates the sustainability of capital reserves relative to lifestyle spending, expected investment returns, and inflation assumptions.', margin, y, { maxWidth: pageWidth - 2 * margin });
+      y += 8;
+      doc.text('The analysis estimates the capital required to support long-term income sustainability without depletion using long-term withdrawal modeling.', margin, y, { maxWidth: pageWidth - 2 * margin });
+      y += 22;
+
+      // --- Strategic Partner Conversion Line ---
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...bodyGray);
+      doc.text('This diagnostic is designed to support financial planning discussions with qualified financial professionals.', margin, y, { maxWidth: pageWidth - 2 * margin });
+
+      addReportFooter(doc);
+
+      doc.save(`Capital-Bridge-Strategic-Wealth-Diagnostic-${new Date().getTime()}.pdf`);
     } catch (error) {
       console.error("PDF Generation Error:", error);
     } finally {
@@ -313,7 +580,7 @@ if (!isAllowed) {
           <div className="p-6 md:p-10 bg-black/10 border-b border-[#FFCC6A]/20">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8">
               <h2 className="text-xl font-semibold text-[#FFCC6A] flex items-center gap-2 flex-shrink-0">
-                <Landmark className="w-5 h-5" /> Forever Income Calculator
+                <Landmark className="w-5 h-5" /> Forever Income Model
               </h2>
               <div className="flex flex-wrap bg-emerald-950/50 rounded-lg p-0.5 border border-[#FFCC6A]/20 gap-0.5 max-w-full">
                 {currencies.map((curr) => (
@@ -467,9 +734,11 @@ if (!isAllowed) {
             </div>
 
             <div className="mt-10 relative z-10">
-              <button onClick={handleDownloadPDF} disabled={!results.isSustainable || isGenerating} className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-lg transition-all ${results.isSustainable && !isGenerating ? 'bg-[#FFCC6A] text-[#0D3A1D] hover:bg-white hover:-translate-y-1 shadow-2xl shadow-[#FFCC6A]/10' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}>
-                {isGenerating ? <><Loader2 className="w-6 h-6 animate-spin" /> Generating Roadmap...</> : <><Download className="w-6 h-6" /> Download Income Roadmap</>}
-              </button>
+              <div className="flex justify-center">
+                <button onClick={handleDownloadPDF} disabled={!results.isSustainable || isGenerating} className={`py-3 px-6 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all ${results.isSustainable && !isGenerating ? 'bg-[#FFCC6A] text-[#0D3A1D] hover:bg-white hover:scale-105 hover:-translate-y-0.5 shadow-lg shadow-[#FFCC6A]/30 animate-download-cta' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}>
+                  {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</> : <><Download className="w-4 h-4" /> Download Report</>}
+                </button>
+              </div>
               <p className="mt-3 text-center text-[10px] text-white font-medium italic px-4 leading-normal">
                 *Please save or print a copy for your records. Capital Bridge does not save or store your personal information.
               </p>

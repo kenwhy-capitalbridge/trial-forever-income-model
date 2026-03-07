@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forever Income Calculator</title>
+    <title>Forever Income Model</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,6 +19,14 @@
         /* Custom slider colors for range inputs */
         input[type='range'] {
             accent-color: #FFCC6A;
+        }
+        /* Download CTA: subtle glow pulse to attract attention */
+        @keyframes download-cta {
+            0%, 100% { box-shadow: 0 4px 14px rgba(255, 204, 106, 0.35); }
+            50% { box-shadow: 0 6px 24px rgba(255, 204, 106, 0.55); }
+        }
+        .animate-download-cta {
+            animation: download-cta 2s ease-in-out infinite;
         }
     </style>
 <script type="importmap">
