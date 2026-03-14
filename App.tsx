@@ -275,7 +275,7 @@ if (!isAllowed) {
         y += 2;
       }
 
-      // --- 2. Report Title Header (clear hierarchy: CAPITAL BRIDGE > Forever Income Model > subtitle) ---
+      // --- 2. Report Title Header (clear hierarchy: CAPITAL BRIDGE > Forever Income Model (Trial Version) > subtitle) ---
       const headerLeft = margin;
       doc.setTextColor(...darkGreen);
       doc.setFont('helvetica', 'bold');
@@ -284,7 +284,7 @@ if (!isAllowed) {
       y += 8;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(13);
-      doc.text('Forever Income Model', headerLeft, y + 4);
+      doc.text('Forever Income Model (Trial Version)', headerLeft, y + 4);
       y += 7;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
@@ -580,7 +580,7 @@ if (!isAllowed) {
           <div className="p-6 md:p-10 bg-black/10 border-b border-[#FFCC6A]/20">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8">
               <h2 className="text-xl font-semibold text-[#FFCC6A] flex items-center gap-2 flex-shrink-0">
-                <Landmark className="w-5 h-5" /> Forever Income Model
+                <Landmark className="w-5 h-5" /> Forever Income Model (Trial Version)
               </h2>
               <div className="flex flex-wrap bg-emerald-950/50 rounded-lg p-0.5 border border-[#FFCC6A]/20 gap-0.5 max-w-full">
                 {currencies.map((curr) => (
